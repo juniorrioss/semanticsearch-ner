@@ -1,5 +1,4 @@
 from datasets import load_dataset
-from glob import glob
 import torch
 import numpy as np
 from prepare_corpus import EmbeddingsPipeline, getnerpipe
@@ -28,7 +27,6 @@ class BERTgle:
     def reranker(self, scores, query_ents, topk=10):
 
         top_indexes = scores.argsort()[-topk:][::-1]
-        filtered_scores = scores[top_indexes]
         filtered_data = self.corpus_table[top_indexes]
 
         final_rank = {}
@@ -57,6 +55,7 @@ class BERTgle:
     def generate_timedlinks(self, reranked):
         ## Get link and time
         links_result = []
+        # texts = []
         for block_idx in reranked.keys():
             block_idx = int(block_idx)
             video = self.corpus_table[block_idx]["video_id"]
@@ -67,7 +66,10 @@ class BERTgle:
             start = round(self.corpus_table[block_idx]["time_start"])
             youtube_video_id = link.split("=")[-1]
             timed_link = f"https://youtu.be/{youtube_video_id}?t={start}"
-            links_result.append(timed_link)
+            text = self.corpus_table[block_idx]["text"]
+            links_result.append((timed_link, text))
+
+            # texts.append(text)
 
         return links_result
 
@@ -106,8 +108,13 @@ if __name__ == "__main__":
 
     print("[ INFO ] Searching query ...")
 
+    query = "Qual a condição para a vida em Vênus?"
     # Do a search with a custom query
-    links = searcher.search(query="A psicanálise de Freud é considerada ciência?")
+    links = searcher.search(query=query)
+
+    print("[ INFO ] Best Match")
+    print("Text: \n", links[0][1])
+    print("Link: \n", links[0][0])
 
     # retriever_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 

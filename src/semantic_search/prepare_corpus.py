@@ -1,7 +1,6 @@
 from transformers import BertModel, AutoTokenizer, pipeline
 import pandas as pd
 import torch
-import string
 
 
 class EmbeddingsPipeline:
@@ -56,10 +55,6 @@ if __name__ == "__main__":
 
     path_dataset = glob("data/texts/ciencia/*")
     link_reference = pd.read_parquet("data/links/ciencia.parquet")
-    # link_reference["filtered_title"] = link_reference["title"].apply(
-    #     lambda x: x.translate(str.maketrans("", "", string.punctuation))
-    # )
-    link_reference["filtered_title"] = link_reference["title"].apply(lambda x: x[:25])
 
     # model_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
     model_name = "neuralmind/bert-base-portuguese-cased"
@@ -144,13 +139,8 @@ if __name__ == "__main__":
         data_videos["entities"].append(unique_entities)
         data_videos["link"].append(video_link)
 
-        # ## TESTE
-        # if idx == 15:
-        #     break
-
     corpus_embedding = pd.DataFrame.from_dict(data_blocks)
     reference_table = pd.DataFrame.from_dict(data_videos)
 
-    print(corpus_embedding.head())
-    corpus_embedding.to_parquet("data/corpus_embeddings/corpusss.parquet")
+    corpus_embedding.to_parquet("data/corpus_embeddings/corpus.parquet")
     reference_table.to_parquet("data/corpus_embeddings/reference_table.parquet")
