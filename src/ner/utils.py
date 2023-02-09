@@ -54,12 +54,3 @@ def pandas2json(df, fname: str):
         for text in texts:
             json.dump(text, file, ensure_ascii=False)
             file.write("\n")
-
-
-if __name__ == "__main__":
-    print("[ INFO ] Loading Conll Dataset")
-    conll_data = conll2pandas("data/ner/first_ner.conll")
-    print("[ INFO ] Conll Loaded")
-    print("[ INFO ] Save Json Dataset")
-    pandas2json(conll_data, "data/ner/first_ner.json")
-    print("[ INFO ] Completed!")
