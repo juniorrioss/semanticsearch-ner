@@ -1,4 +1,4 @@
-from transformers import BertModel, AutoTokenizer, pipeline
+from transformers import AutoModel, AutoTokenizer, pipeline
 import pandas as pd
 import torch
 
@@ -16,7 +16,7 @@ class EmbeddingsPipeline:
         self.model, self.tokenizer = self.init_retriever(model_name)
 
     def init_retriever(self, model_name):
-        return BertModel.from_pretrained(model_name).to(
+        return AutoModel.from_pretrained(model_name).to(
             self.device
         ), AutoTokenizer.from_pretrained(model_name)
 
@@ -56,13 +56,16 @@ if __name__ == "__main__":
     path_dataset = glob("data/texts/ciencia/*")
     link_reference = pd.read_parquet("data/links/ciencia.parquet")
 
-    # model_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
-    model_name = "neuralmind/bert-base-portuguese-cased"
+    # model_name = "neuralmind/bert-base-portuguese-cased"
+    model_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 
     retrivier_pipe = EmbeddingsPipeline(model_name=model_name, device="cuda:0")
     ner_path = "runs/overfited_ner/checkpoint-816"
 
     ner_pipe = getnerpipe(ner_path, device="cuda:0")
+    from nltk.stem.porter import PorterStemmer
+
+    stemmer = PorterStemmer()
 
     data_blocks = {
         "text": [],
@@ -75,6 +78,14 @@ if __name__ == "__main__":
     }
     data_videos = {"video_id": [], "title": [], "entities": [], "link": []}
     for idx, path in tqdm(enumerate(path_dataset), total=len(path_dataset)):
+
+        title = (
+            path.split("/")[-1]
+            .replace(".parquet", "")
+            .replace("？", "?")
+            .replace("⧸", "/")
+        )
+
         texts = []
         embeddings = []
         entities_labels = []
@@ -92,11 +103,13 @@ if __name__ == "__main__":
                 continue
             minor_text = " ".join(minor_split)
 
-            result = retrivier_pipe(minor_text)
+            input_text = title.lower() + " [SEP] " + minor_text
+
+            result = retrivier_pipe(input_text)
             embeddings.append(result)
 
             # ner pipeline
-            entity = ner_pipe(minor_text)
+            entity = ner_pipe(input_text)
             entity_label = list(set([(i["word"], i["entity_group"]) for i in entity]))
             entities_labels.append(entity_label)
 
@@ -109,13 +122,6 @@ if __name__ == "__main__":
 
         video_ids = [idx] * len(embeddings)
         block_ids = np.arange(0, len(embeddings)).tolist()
-        title = (
-            path.split("/")[-1]
-            .replace(".parquet", "")
-            .replace("？", "?")
-            .replace("⧸", "/")
-            # .translate(str.maketrans("", "", string.punctuation))
-        )
 
         titles = [title] * len(embeddings)
 
@@ -134,7 +140,7 @@ if __name__ == "__main__":
         data_videos["title"].append(title)
         data_videos["video_id"].append(idx)
         unique_entities = [
-            ent[0] for video_ents in entities_labels for ent in video_ents
+            stemmer.stem(ent[0]) for video_ents in entities_labels for ent in video_ents
         ]
         data_videos["entities"].append(unique_entities)
         data_videos["link"].append(video_link)
@@ -142,5 +148,5 @@ if __name__ == "__main__":
     corpus_embedding = pd.DataFrame.from_dict(data_blocks)
     reference_table = pd.DataFrame.from_dict(data_videos)
 
-    corpus_embedding.to_parquet("data/corpus_embeddings/corpus.parquet")
+    corpus_embedding.to_parquet("data/corpus_embeddings/corpus_multimpnet.parquet")
     reference_table.to_parquet("data/corpus_embeddings/reference_table.parquet")

@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from prepare_corpus import EmbeddingsPipeline, getnerpipe
 import pandas as pd
+from nltk.stem.porter import PorterStemmer
 
 
 class BERTgle:
@@ -11,7 +12,7 @@ class BERTgle:
         self.retriever_path = retriever_path
         self.corpus_path = corpus_path
         self.reference_path = reference_path
-
+        self.stemmer = PorterStemmer()
         self.build_models()
         self.load_data()
 
@@ -41,9 +42,8 @@ class BERTgle:
             count_intersection = ents_intersection.sum()
 
             for block_idx in top_indexes[video_ids == video_id]:
-                final_rank[block_idx] = scores[block_idx] * float(
-                    f"1.{count_intersection}"
-                )
+                multiplier = count_intersection / 20 + 1.0
+                final_rank[block_idx] = scores[block_idx] * multiplier
 
         # Sorting dict by values
         ordered_rank = dict(
@@ -52,10 +52,10 @@ class BERTgle:
 
         return ordered_rank
 
-    def generate_timedlinks(self, reranked):
+    def generate_response(self, reranked):
         ## Get link and time
         links_result = []
-        # texts = []
+
         for block_idx in reranked.keys():
             block_idx = int(block_idx)
             video = self.corpus_table[block_idx]["video_id"]
@@ -67,7 +67,16 @@ class BERTgle:
             youtube_video_id = link.split("=")[-1]
             timed_link = f"https://youtu.be/{youtube_video_id}?t={start}"
             text = self.corpus_table[block_idx]["text"]
-            links_result.append((timed_link, text))
+            title = self.corpus_table[block_idx]["title"]
+
+            links_result.append(
+                {
+                    "title": title,
+                    "link": timed_link,
+                    "text": text,
+                    "score": reranked[block_idx],
+                }
+            )
 
             # texts.append(text)
 
@@ -80,7 +89,7 @@ class BERTgle:
 
         # Ner predict
         query_ents = self.ner_pipe(query)
-        query_ents = np.array([i["word"] for i in query_ents])
+        query_ents = np.array([self.stemmer.stem(i["word"]) for i in query_ents])
 
         # Dot Product for score
         scores = np.matmul(query_emb, self.corpus_embeddings.T)
@@ -89,16 +98,18 @@ class BERTgle:
 
         reranked = self.reranker(scores, query_ents, topk=10)
 
-        links = self.generate_timedlinks(reranked)
+        links = self.generate_response(reranked)
 
         return links
 
 
 if __name__ == "__main__":
 
-    path_dataset = "data/corpus_embeddings/corpus.parquet"
+    path_dataset = "data/corpus_embeddings/corpus_multiqa.parquet"
     reference_path = "data/corpus_embeddings/reference_table.parquet"
-    retriever_path = "neuralmind/bert-base-portuguese-cased"
+    # retriever_path = "neuralmind/bert-base-portuguese-cased"
+    retriever_path = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
+
     ner_path = "runs/overfited_ner/checkpoint-816"
 
     print("[ INFO ] Loading BERTgle")
@@ -108,13 +119,13 @@ if __name__ == "__main__":
 
     print("[ INFO ] Searching query ...")
 
-    query = "Qual a condição para a vida em Vênus?"
+    query = "maior erro do Einstein"
     # Do a search with a custom query
     links = searcher.search(query=query)
 
     print("[ INFO ] Best Match")
-    print("Text: \n", links[0][1])
-    print("Link: \n", links[0][0])
+    print("Text: \n", links[0]["text"])
+    print("Link: \n", links[0]["link"])
 
     # retriever_name = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
 
