@@ -1,0 +1,26 @@
+python src/ner/run_ner.py \
+  --task_name ner \
+  --per_device_train_batch_size 8 \
+  --learning_rate 2e-5 \
+  --output_dir t \
+  --seed 2 \
+  --model_name_or_path neuralmind/bert-base-portuguese-cased \
+  --train_file pt-multinerd-train.json  \
+  --validation_file pt-multinerd-dev.json \
+  --do_train \
+  --do_eval \
+  --report_to wandb \
+  --max_seq_length 512 \
+  --return_entity_level_metrics True \
+  --save_total_limit 1 \
+  --lr_scheduler_type linear \
+  --gradient_accumulation_steps 1 \
+  --gradient_checkpointing False \
+  --fp16 True \
+  --fp16_full_eval True \
+  --metric_for_best_model eval_overall_f1 \
+  --evaluation_strategy epoch \
+  --load_best_model_at_end True \
+  --save_strategy epoch \
+  --num_train_epochs 5 \
+  --warmup_ratio 0.1

@@ -1,0 +1,21 @@
+python src/ner/run_trial.py \
+  --task_name ner \
+  --num_train_epochs 1 \
+  --output_dir runs/hpo/ \
+  --seed 2 \
+  --model_name_or_path neuralmind/bert-base-portuguese-cased \
+  --train_file data/ner/fold-0/train.json  \
+  --validation_file data/ner/fold-0/eval.json \
+  --do_train \
+  --do_eval \
+  --report_to wandb \
+  --max_seq_length 512 \
+  --return_entity_level_metrics True \
+  --save_total_limit 1 \
+  --fp16 True \
+  --fp16_full_eval True \
+  --metric_for_best_model eval_overall_f1 \
+  --load_best_model_at_end True  \
+  --save_strategy epoch \
+  --evaluation_strategy epoch \
+  --num_train_epochs 20
