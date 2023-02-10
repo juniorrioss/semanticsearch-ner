@@ -1,7 +1,6 @@
 from datasets import load_dataset
-import torch
 import numpy as np
-from prepare_corpus import EmbeddingsPipeline, getnerpipe
+from .pipe_modeling import EmbeddingsPipeline, getnerpipe
 import pandas as pd
 from nltk.stem.porter import PorterStemmer
 
@@ -22,7 +21,9 @@ class BERTgle:
 
     def load_data(self):
         self.reference_dataset = pd.read_parquet(self.reference_path)
-        self.corpus_table = load_dataset("parquet", data_files=[path_dataset])["train"]
+        self.corpus_table = load_dataset("parquet", data_files=[self.corpus_path])[
+            "train"
+        ]
         self.corpus_embeddings = np.array(self.corpus_table["embeddings"])
 
     def reranker(self, scores, query_ents, topk=10):
