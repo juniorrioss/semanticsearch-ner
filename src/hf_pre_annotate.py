@@ -1,10 +1,8 @@
-import spacy
 import pandas as pd
 import json
 from transformers import pipeline
 from tqdm.auto import tqdm
 
-# nlp = spacy.load("pt_core_news_lg")
 
 nlp = pipeline("ner", model="model", aggregation_strategy="first", device=0)
 nlp.tokenizer.model_max_length = 512
@@ -74,5 +72,3 @@ if __name__ == "__main__":
 
     with open("preanot_multinerd-025.json", "w", encoding="utf8") as f:
         json.dump(json_data, f, ensure_ascii=False)
-
-# print([(w.text, w.pos_, w.ent_iob_, w.ent_type_) for w in doc])
