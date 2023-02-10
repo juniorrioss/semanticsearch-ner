@@ -59,6 +59,7 @@ if __name__ == "__main__":
     folder_path = "data/texts/ciencia"
     texts = []
 
+    # Load texts and split them into block of 320 words
     for path in glob(folder_path + "/*.parquet"):
         df = pd.read_parquet(path)
         text = " ".join(df["text"])
@@ -68,7 +69,9 @@ if __name__ == "__main__":
             for i in range(len(splits) - 1):
                 texts.append(" ".join(split_text[splits[i] : splits[i + 1]]))
 
+    # Pre annotate texts
     json_data = preannotate(texts)
 
+    # Save data
     with open("preanot_multinerd-025.json", "w", encoding="utf8") as f:
         json.dump(json_data, f, ensure_ascii=False)
