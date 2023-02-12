@@ -33,3 +33,13 @@ if __name__ == "__main__":
     if len(already_saved) > 0:
         files = files[len(already_saved) :]
     transcribe_files(files, save_folder=save_folder)
+
+    # # TEST
+
+    # folder_path = "audios/test"
+    # files = glob(folder_path + "/*.m4a")
+    # save_folder = "data/texts/test"
+    # already_saved = os.listdir(save_folder)
+    # if len(already_saved) > 0:
+    #     files = files[len(already_saved) :]
+    # transcribe_files(files, save_folder=save_folder)

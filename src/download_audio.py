@@ -27,8 +27,14 @@ if __name__ == "__main__":
 
     df = pd.read_parquet("data/links/ciencia.parquet")
 
+    # TRAIN  - 500
     save_folder = "audios/ciencia"
     links = df["link"][:500].tolist()
+    download_audios(links, save_folder=save_folder)
+
+    # TEST - 160
+    save_folder = "audios/test"
+    links = df["link"][500:].tolist()
     download_audios(links, save_folder=save_folder)
 
     print("Done!")
