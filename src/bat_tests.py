@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-
+a=2
 bertgle_endpoint="http://0.0.0.0:3000/predict"
 
 header_auth = {
@@ -43,13 +43,3 @@ for i in df_query.index.tolist():
 
 print(f'Primeiros: {vec_first.sum()}')
 print(f'Quintos: {vec_five.sum()}')
-
-    
-    
-        
-
-
-
-
-
-a=1
