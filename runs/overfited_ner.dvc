@@ -1,0 +1,5 @@
+outs:
+- md5: 876355c1780237db43147f5837343ed2.dir
+  size: 434331726
+  nfiles: 6
+  path: overfited_ner
