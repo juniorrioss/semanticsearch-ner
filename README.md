@@ -1,5 +1,7 @@
 ## NLP Project - Semantic NER + audio transcription
 
+(![image](https://user-images.githubusercontent.com/58753373/219784293-38addfa6-7efa-4612-bafa-186f9183e939.png)
+
 #### 1 - Download audio from videos
 ```bash
   $ python src/download_audio.py
